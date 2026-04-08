@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(90deg, #041c28, #244b5b);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: #18283a;
+            border-radius: 22px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+            padding: 34px 28px 28px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 14px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 15px;
+            color: #d0d8e2;
+            margin-bottom: 26px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: #2b425b;
+            color: white;
+            border: none;
+            padding: 14px 10px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .tab-btn.active {
+            background: #16b8ee;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 15px 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-bottom: 18px;
+            outline: none;
+            background: #f2f2f2;
+            color: #111;
+        }
+
+        .checkbox-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            font-size: 16px;
+        }
+
+        .download-btn,
+        .search-btn,
+        .preview-btn {
+            width: 100%;
+            background: #16b8ee;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.25s;
+            margin-bottom: 18px;
+        }
+
+        .download-btn:hover,
+        .search-btn:hover,
+        .preview-btn:hover,
+        .small-btn:hover {
+            opacity: 0.92;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 22px;
+            background: #3a3a3a;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 10px;
+            margin-bottom: 14px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: #16b8ee;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            text-align: center;
+            color: #d6e2f0;
+            font-size: 14px;
+            min-height: 20px;
+        }
+
+        .search-results {
+            margin-top: 12px;
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .video-card,
+        .preview-card {
+            background: #22364b;
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 14px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .video-card img,
+        .preview-card img {
+            width: 170px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .video-info,
+        .preview-info {
+            flex: 1;
+        }
+
+        .video-title,
+        .preview-title {
+            font-size: 15px;
+            font-weight: bold;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            color: white;
+        }
+
+        .preview-meta {
+            font-size: 14px;
+            color: #d6e2f0;
+            line-height: 1.6;
+        }
+
+        .small-btn {
+            background: #16b8ee;
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .section-note {
+            font-size: 13px;
+            color: #c9d7e3;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .mode-box {
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 18px;
+        }
+
+        .mode-title {
+            font-size: 13px;
+            color: #c9d7e3;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 650px) {
+            .container {
+                padding: 24px 18px;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .video-card,
+            .preview-card {
+                flex-direction: column;
+            }
+
+            .video-card img,
+            .preview-card img {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="title">🔥 Universal Downloader</div>
+        <div class="subtitle">Supports YouTube, Instagram, Facebook & more</div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('urlTab', this)">📥 YT URL</button>
+            <button class="tab-btn" onclick="showTab('searchTab', this)">🔎 YT Search</button>
+            <button class="tab-btn" onclick="showTab('chromeTab', this)">🌐 All Sites</button>
+        </div>
+
+        <!-- URL TAB -->
+        <div id="urlTab" class="tab-content active">
+            <div class="section-note">Paste direct video link here, preview first, then download</div>
+
+            <input type="text" id="urlInput" placeholder="Paste direct video URL here">
+            <button class="preview-btn" onclick="previewVideo('urlInput', 'urlPreview', 'quality', 'urlBitrate')">Fetch Video Info</button>
+
+            <div id="urlPreview"></div>
+
+            <div class="mode-box">
+                <div class="mode-title">Video quality</div>
+                <select id="quality">
+                    <option value="best">Best Quality</option>
+                    <option value="720">720p</option>
+                    <option value="480">480p</option>
+                    <option value="360">360p</option>
+                </select>
+
+                <div class="checkbox-wrap">
+                    <input type="checkbox" id="audioOnly" onchange="toggleAudioMode('audioOnly', 'quality', 'urlAudioOptions')">
+                    <label for="audioOnly">Audio Only</label>
+                </div>
+
+                <div id="urlAudioOptions" class="hidden">
+                    <div class="mode-title">Audio format / bitrate</div>
+                    <select id="urlAudioFormat">
+                        <option value="mp3">MP3</option>
+                        <option value="m4a">M4A</option>
+                    </select>
+                    <select id="urlBitrate">
+                        <option value="128">128 kbps</option>
+                        <option value="192">192 kbps</option>
+                        <option value="320">320 kbps</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="download-btn" onclick="downloadVideo('urlInput', 'quality', 'audioOnly', 'urlAudioFormat', 'urlBitrate')">Download from URL</button>
+        </div>
+
+        <!-- SEARCH TAB -->
+        <div id="searchTab" class="tab-content">
+            <div class="section-note">Search first, then choose result to download</div>
+
+            <input type="text" id="searchQuery" placeholder="Search YouTube videos...">
+
+            <div class="mode-box">
+                <div class="mode-title">Video quality</div>
+                <select id="searchQuality">
+                    <option value="best">Best Quality</option>
+                    <option value="720">720p</option>
+                    <option value="480">480p</option>
+                    <option value="360">360p</option>
+                </select>
+
+                <div class="checkbox-wrap">
+                    <input type="checkbox" id="searchAudioOnly" onchange="toggleAudioMode('searchAudioOnly', 'searchQuality', 'searchAudioOptions')">
+                    <label for="searchAudioOnly">Audio Only</label>
+                </div>
+
+                <div id="searchAudioOptions" class="hidden">
+                    <div class="mode-title">Audio format / bitrate</div>
+                    <select id="searchAudioFormat">
+                        <option value="mp3">MP3</option>
+                        <option value="m4a">M4A</option>
+                    </select>
+                    <select id="searchBitrate">
+                        <option value="128">128 kbps</option>
+                        <option value="192">192 kbps</option>
+                        <option value="320">320 kbps</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="search-btn" onclick="searchVideos()">Search</button>
+
+            <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <!-- CHROME TAB -->
+        <div id="chromeTab" class="tab-content">
+            <div class="section-note">Paste any browser/chrome video page link, preview it, then download</div>
+
+            <input type="text" id="chromeUrlInput" placeholder="Paste any video page URL here">
+            <button class="preview-btn" onclick="previewVideo('chromeUrlInput', 'chromePreview', 'chromeQuality', 'chromeBitrate')">Fetch Video Info</button>
+
+            <div id="chromePreview"></div>
+
+            <div class="mode-box">
+                <div class="mode-title">Video quality</div>
+                <select id="chromeQuality">
+                    <option value="best">Best Quality</option>
+                    <option value="720">720p</option>
+                    <option value="480">480p</option>
+                    <option value="360">360p</option>
+                </select>
+
+                <div class="checkbox-wrap">
+                    <input type="checkbox" id="chromeAudioOnly" onchange="toggleAudioMode('chromeAudioOnly', 'chromeQuality', 'chromeAudioOptions')">
+                    <label for="chromeAudioOnly">Audio Only</label>
+                </div>
+
+                <div id="chromeAudioOptions" class="hidden">
+                    <div class="mode-title">Audio format / bitrate</div>
+                    <select id="chromeAudioFormat">
+                        <option value="mp3">MP3</option>
+                        <option value="m4a">M4A</option>
+                    </select>
+                    <select id="chromeBitrate">
+                        <option value="128">128 kbps</option>
+                        <option value="192">192 kbps</option>
+                        <option value="320">320 kbps</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="download-btn" onclick="downloadVideo('chromeUrlInput', 'chromeQuality', 'chromeAudioOnly', 'chromeAudioFormat', 'chromeBitrate')">Download from Chrome URL</button>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="progress-text" id="progressText">0%</div>
+        <div class="status" id="statusText"></div>
+    </div>
+
+    <script>
+        function showTab(tabId, btn) {
+            document.querySelectorAll(".tab-content").forEach(tab => {
+                tab.classList.remove("active");
+            });
+
+            document.querySelectorAll(".tab-btn").forEach(button => {
+                button.classList.remove("active");
+            });
+
+            document.getElementById(tabId).classList.add("active");
+            btn.classList.add("active");
+        }
+
+        function setProgress(percent, text = "") {
+            document.getElementById("progressBar").style.width = percent + "%";
+            document.getElementById("progressText").innerText = percent + "%";
+            document.getElementById("statusText").innerText = text;
+        }
+
+        function resetProgress() {
+            setTimeout(() => {
+                setProgress(0, "");
+            }, 2200);
+        }
+
+        function qualityValueFromLabel(label) {
+            const value = (label || "").toLowerCase();
+            if (value.startsWith("720p")) return "720";
+            if (value.startsWith("480p")) return "480";
+            if (value.startsWith("360p")) return "360";
+            return "best";
+        }
+
+        function bitrateValueFromLabel(label) {
+            const value = (label || "").trim().toLowerCase();
+            if (value.startsWith("128")) return "128";
+            if (value.startsWith("192")) return "192";
+            if (value.startsWith("320")) return "320";
+            return "192";
+        }
+
+        function updateQualityDropdown(selectId, qualityOptions) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+
+            select.innerHTML = "";
+            const options = qualityOptions && qualityOptions.length
+                ? qualityOptions
+                : ["Best Quality", "720p", "480p", "360p"];
+
+            options.forEach(label => {
+                const option = document.createElement("option");
+                option.value = qualityValueFromLabel(label);
+                option.textContent = label;
+                select.appendChild(option);
+            });
+        }
+
+        function updateBitrateDropdown(selectId, audioOptions) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+
+            select.innerHTML = "";
+            const options = audioOptions && audioOptions.length
+                ? audioOptions
+                : ["128 kbps", "192 kbps", "320 kbps"];
+
+            options.forEach(label => {
+                const option = document.createElement("option");
+                option.value = bitrateValueFromLabel(label);
+                option.textContent = label;
+                select.appendChild(option);
+            });
+        }
+
+        function toggleAudioMode(checkboxId, qualityId, audioOptionsId) {
+            const checkbox = document.getElementById(checkboxId);
+            const quality = document.getElementById(qualityId);
+            const audioBox = document.getElementById(audioOptionsId);
+            if (!checkbox || !quality || !audioBox) return;
+
+            if (checkbox.checked) {
+                quality.disabled = true;
+                audioBox.classList.remove("hidden");
+            } else {
+                quality.disabled = false;
+                audioBox.classList.add("hidden");
+            }
+        }
+
+        function previewVideo(inputId, previewId, qualityId = null, bitrateId = null) {
+            const url = document.getElementById(inputId).value.trim();
+            const previewDiv = document.getElementById(previewId);
+
+            if (!url) {
+                alert("Please paste a URL");
+                return;
+            }
+
+            previewDiv.innerHTML = "";
+            setProgress(15, "Fetching video info...");
+
+            fetch("/preview", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `url=${encodeURIComponent(url)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    previewDiv.innerHTML = `<p style="text-align:center;color:#ffb3b3;">${data.error}</p>`;
+                    setProgress(0, "Preview failed");
+                    return;
+                }
+
+                previewDiv.innerHTML = `
+                    <div class="preview-card">
+                        <img src="${data.thumbnail}" alt="thumbnail">
+                        <div class="preview-info">
+                            <div class="preview-title">${data.title}</div>
+                            <div class="preview-meta">
+                                Uploader: ${data.uploader}<br>
+                                Duration: ${data.duration}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if (qualityId) {
+                    updateQualityDropdown(qualityId, data.quality_options || []);
+                }
+
+                if (bitrateId) {
+                    updateBitrateDropdown(bitrateId, data.audio_bitrate_options || []);
+                }
+
+                setProgress(100, "Video info loaded with video + audio sizes");
+                resetProgress();
+            })
+            .catch(error => {
+                console.error(error);
+                setProgress(0, "Preview failed");
+                previewDiv.innerHTML = `<p style="text-align:center;color:#ffb3b3;">Could not fetch video info</p>`;
+            });
+        }
+
+        function downloadVideo(inputId, qualityId, audioId, audioFormatId, bitrateId) {
+            const url = document.getElementById(inputId).value.trim();
+            const quality = document.getElementById(qualityId).value;
+            const audioOnly = document.getElementById(audioId).checked;
+            const audioFormat = document.getElementById(audioFormatId).value;
+            const bitrate = document.getElementById(bitrateId).value;
+
+            if (!url) {
+                alert("Please paste a URL");
+                return;
+            }
+
+            setProgress(15, "Starting download...");
+
+            fetch("/download", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `url=${encodeURIComponent(url)}&quality=${encodeURIComponent(quality)}&audio_only=${audioOnly}&audio_format=${encodeURIComponent(audioFormat)}&bitrate=${encodeURIComponent(bitrate)}`
+            })
+            .then(response => response.text())
+            .then(data => {
+                setProgress(100, data);
+                resetProgress();
+            })
+            .catch(error => {
+                setProgress(0, "Download failed");
+                alert("Download failed");
+                console.error(error);
+            });
+        }
+
+        function fetchSearchSizes(url, sizeId) {
+            fetch("/quality_options", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `url=${encodeURIComponent(url)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                const sizeBox = document.getElementById(sizeId);
+                if (!sizeBox) return;
+
+                if (data.error) {
+                    sizeBox.innerHTML = `<span style="color:#ffb3b3;">Size unavailable</span>`;
+                    return;
+                }
+
+                const videoOptions = data.quality_options || [];
+                const audioOptions = data.audio_bitrate_options || [];
+
+                if (!videoOptions.length && !audioOptions.length) {
+                    sizeBox.innerHTML = `<span style="color:#d6e2f0;">Size unavailable</span>`;
+                    return;
+                }
+
+                let html = "";
+
+                if (videoOptions.length) {
+                    html += `<div style="margin-bottom:6px;"><strong>Video:</strong></div>`;
+                    html += videoOptions.map(item => `<div>${item}</div>`).join("");
+                }
+
+                if (audioOptions.length) {
+                    if (videoOptions.length) html += `<div style="height:8px;"></div>`;
+                    html += `<div style="margin-bottom:6px;"><strong>Audio:</strong></div>`;
+                    html += audioOptions.map(item => `<div>${item}</div>`).join("");
+                }
+
+                sizeBox.innerHTML = html;
+            })
+            .catch(error => {
+                const sizeBox = document.getElementById(sizeId);
+                if (sizeBox) {
+                    sizeBox.innerHTML = `<span style="color:#ffb3b3;">Size unavailable</span>`;
+                }
+                console.error(error);
+            });
+        }
+
+        function searchVideos() {
+            const query = document.getElementById("searchQuery").value.trim();
+            const resultsDiv = document.getElementById("searchResults");
+
+            if (!query) {
+                alert("Please enter search text");
+                return;
+            }
+
+            resultsDiv.innerHTML = "";
+            setProgress(18, "Searching videos...");
+
+            fetch("/search", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `query=${encodeURIComponent(query)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    resultsDiv.innerHTML = "<p style='text-align:center;color:#d6e2f0;'>No results found</p>";
+                    setProgress(100, "No results found");
+                    resetProgress();
+                    return;
+                }
+
+                if (data[0].error) {
+                    resultsDiv.innerHTML = `<p style='text-align:center;color:#ffb3b3;'>${data[0].error}</p>`;
+                    setProgress(0, "Search failed");
+                    return;
+                }
+
+                let html = "";
+
+                data.forEach((video, index) => {
+                    const url = `https://www.youtube.com/watch?v=${video.videoId}`;
+                    const sizeId = `searchSize_${index}`;
+
+                    html += `
+                        <div class="video-card">
+                            <img src="${video.thumbnail}" alt="thumbnail">
+                            <div class="video-info">
+                                <div class="video-title">${video.title}</div>
+                                <div style="font-size:13px;color:#d6e2f0;margin-bottom:10px;">
+                                    Channel: ${video.channel || "Unknown"}
+                                </div>
+                                <div id="${sizeId}" style="font-size:13px;color:#d6e2f0;line-height:1.6;margin-bottom:12px;">
+                                    Loading sizes...
+                                </div>
+                                <button class="small-btn" onclick="downloadFromSearch('${url}')">Download</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                resultsDiv.innerHTML = html;
+
+                data.forEach((video, index) => {
+                    const url = `https://www.youtube.com/watch?v=${video.videoId}`;
+                    fetchSearchSizes(url, `searchSize_${index}`);
+                });
+
+                setProgress(100, "Search complete");
+                resetProgress();
+            })
+            .catch(error => {
+                setProgress(0, "Search failed");
+                alert("Search failed");
+                console.error(error);
+            });
+        }
+
+        function downloadFromSearch(url) {
+            const quality = document.getElementById("searchQuality").value;
+            const audioOnly = document.getElementById("searchAudioOnly").checked;
+            const audioFormat = document.getElementById("searchAudioFormat").value;
+            const bitrate = document.getElementById("searchBitrate").value;
+
+            setProgress(20, "Downloading selected video...");
+
+            fetch("/download", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `url=${encodeURIComponent(url)}&quality=${encodeURIComponent(quality)}&audio_only=${audioOnly}&audio_format=${encodeURIComponent(audioFormat)}&bitrate=${encodeURIComponent(bitrate)}`
+            })
+            .then(response => response.text())
+            .then(data => {
+                setProgress(100, data);
+                resetProgress();
+            })
+            .catch(error => {
+                setProgress(0, "Download failed");
+                alert("Download failed");
+                console.error(error);
+            });
+        }
+    </script>
+
+</body>
+</html>
